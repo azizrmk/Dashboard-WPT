@@ -44,7 +44,7 @@
 
                 <h4>Nilai LDR</h4>
 
-                <h1>
+                <h1 id="ldrValue">
 
                     {{ $latest->ldr ?? 0 }}
 
@@ -59,7 +59,7 @@
 
                 <h4>Status Lampu</h4>
 
-                <h1>
+                <h1 id="lampStatus">
 
                     {{ ($latest->lampu ?? 0) ? 'ON' : 'OFF' }}
 
@@ -74,7 +74,7 @@
 
                 <h4>Mode Sistem</h4>
 
-                <h1>
+                <h1 id="modeSystem">
 
                     {{ $latest->mode ?? 'AUTO' }}
 
@@ -97,38 +97,73 @@
 
 const ctx = document.getElementById('chart');
 
-new Chart(ctx, {
+const chart = new Chart(ctx, {
 
     type: 'line',
 
     data: {
 
-        labels: [
-
-            @foreach($chart as $item)
-
-                "{{ $item->created_at->format('H:i:s') }}",
-
-            @endforeach
-        ],
+        labels: [],
 
         datasets: [{
 
             label: 'Nilai LDR',
 
-            data: [
-
-                @foreach($chart as $item)
-
-                    {{ $item->ldr }},
-
-                @endforeach
-            ],
+            data: [],
 
             borderWidth: 2
         }]
     }
 });
+
+// =======================
+// REALTIME UPDATE
+// =======================
+
+async function fetchData() {
+
+    const response = await fetch('/api/latest');
+
+    const data = await response.json();
+
+    // =======================
+    // UPDATE CARD
+    // =======================
+
+    document.getElementById('ldrValue').innerHTML = data.ldr;
+
+    document.getElementById('lampStatus').innerHTML =
+        data.lampu ? 'ON' : 'OFF';
+
+    document.getElementById('modeSystem').innerHTML =
+        data.mode;
+
+    // =======================
+    // UPDATE CHART
+    // =======================
+
+    const currentTime = new Date().toLocaleTimeString();
+
+    chart.data.labels.push(currentTime);
+
+    chart.data.datasets[0].data.push(data.ldr);
+
+    // max 10 data
+    if (chart.data.labels.length > 10) {
+
+        chart.data.labels.shift();
+
+        chart.data.datasets[0].data.shift();
+    }
+
+    chart.update();
+}
+
+// =======================
+// AUTO REFRESH
+// =======================
+
+setInterval(fetchData, 3000);
 
 </script>
 

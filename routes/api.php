@@ -48,7 +48,7 @@ Route::get('/latest', function () {
 
         'timeout_seconds' => $timeoutSeconds,
 
-        'ldr' => $data->ldr,
+        'ldr' => $isOnline ? $data->ldr : 0,
 
         'lampu' => $isOnline ? $data->lampu : false,
 

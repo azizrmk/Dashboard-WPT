@@ -69,6 +69,7 @@ class SensorApiTest extends TestCase
             ->assertJsonPath('status', 'offline')
             ->assertJsonPath('is_online', false)
             ->assertJsonPath('timeout_seconds', 10)
+            ->assertJsonPath('ldr', 0)
             ->assertJsonPath('lampu', false)
             ->assertJsonPath('tegangan', 0)
             ->assertJsonPath('arus', 0)

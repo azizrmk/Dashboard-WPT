@@ -7,9 +7,18 @@ use Illuminate\Database\Eloquent\Model;
 class Monitoring extends Model
 {
     protected $fillable = [
+        'ldr',
+        'lampu',
+        'mode',
+        'tegangan',
+        'arus',
+        'daya',
+    ];
 
-    'ldr',
-    'lampu',
-    'mode'
-];
+    protected $casts = [
+        'lampu' => 'boolean',
+        'tegangan' => 'float',
+        'arus' => 'float',
+        'daya' => 'float',
+    ];
 }

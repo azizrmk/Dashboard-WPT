@@ -154,6 +154,11 @@
             color:#00ff7f;
         }
 
+        .status-online.offline h3{
+
+            color:#ff4d4f;
+        }
+
         /* =======================
            CARD
         ======================= */
@@ -426,11 +431,11 @@
 
         </div>
 
-        <div class="status-online">
+        <div class="status-online" id="connectionStatusBox">
 
             <small>Status Koneksi</small>
 
-            <h3>
+            <h3 id="connectionStatusText">
 
                 ESP32 ONLINE
             </h3>
@@ -777,11 +782,32 @@
     // FETCH DATA
     // =======================
 
+    const statusBox =
+        document.getElementById('connectionStatusBox');
+
+    const statusText =
+        document.getElementById('connectionStatusText');
+
+    function updateConnectionStatus(isOnline) {
+
+        statusText.innerHTML =
+            isOnline ? 'ESP32 ONLINE' : 'ESP32 OFFLINE';
+
+        statusBox.classList.toggle('offline', ! isOnline);
+    }
+
     async function fetchData() {
 
-        const response = await fetch('/api/latest');
+        try {
+            const response = await fetch('/api/latest');
 
-        const data = await response.json();
+            if (! response.ok) {
+                throw new Error('Gagal mengambil data monitoring');
+            }
+
+            const data = await response.json();
+
+        updateConnectionStatus(data.is_online);
 
         // =======================
         // UPDATE CARD
@@ -791,7 +817,7 @@
             data.ldr;
 
         document.getElementById('lampStatus').innerHTML =
-            data.lampu ? 'ON' : 'OFF';
+            data.is_online ? (data.lampu ? 'ON' : 'OFF') : 'OFFLINE';
 
         document.getElementById('modeSystem').innerHTML =
             data.mode;
@@ -812,7 +838,9 @@
         const currentTime = new Date().toLocaleTimeString();
 
         document.getElementById('updateTime').innerHTML =
-            "Terakhir Update : " + currentTime;
+            data.created_at
+                ? "Terakhir Data Masuk : " + new Date(data.created_at).toLocaleTimeString()
+                : "Belum ada data masuk";
 
         // =======================
         // UPDATE CHART LDR
@@ -900,11 +928,25 @@ let row = `
 `;
         document.getElementById('tableData').innerHTML =
             row + document.getElementById('tableData').innerHTML;
+
+        const tableBody = document.getElementById('tableData');
+
+        while (tableBody.children.length > 10) {
+            tableBody.removeChild(tableBody.lastElementChild);
+        }
+        } catch (error) {
+            updateConnectionStatus(false);
+
+            document.getElementById('updateTime').innerHTML =
+                "Koneksi data bermasalah";
+        }
     }
 
     // =======================
     // AUTO REFRESH
     // =======================
+
+    fetchData();
 
     setInterval(fetchData, 3000);
 
